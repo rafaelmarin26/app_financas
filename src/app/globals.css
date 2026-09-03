@@ -1,26 +1,220 @@
 @import "tailwindcss";
+@import "tw-animate-css";
+
+/* `dark:` vale para a classe .dark (toggle explícito) e para a preferência do
+   sistema, a menos que a página esteja marcada como .light. */
+@custom-variant dark {
+  &:where(.dark, .dark *) {
+    @slot;
+  }
+  @media (prefers-color-scheme: dark) {
+    &:where(:not(.light *)) {
+      @slot;
+    }
+  }
+}
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  color-scheme: light;
+  --radius: 0.75rem;
+
+  --background: oklch(0.985 0.002 247);
+  --foreground: oklch(0.21 0.02 260);
+
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.21 0.02 260);
+
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.21 0.02 260);
+
+  --primary: oklch(0.55 0.16 254);
+  --primary-foreground: oklch(0.99 0.005 250);
+
+  --secondary: oklch(0.96 0.006 250);
+  --secondary-foreground: oklch(0.3 0.02 260);
+
+  --muted: oklch(0.965 0.005 250);
+  --muted-foreground: oklch(0.55 0.015 260);
+
+  --accent: oklch(0.955 0.012 250);
+  --accent-foreground: oklch(0.3 0.02 260);
+
+  --destructive: oklch(0.58 0.21 27);
+  --destructive-foreground: oklch(0.99 0.005 250);
+
+  --success: oklch(0.62 0.14 158);
+  --success-foreground: oklch(0.99 0.005 250);
+
+  --border: oklch(0.92 0.006 250);
+  --input: oklch(0.92 0.006 250);
+  --ring: oklch(0.55 0.16 254);
+
+  /* Gráficos — rampa ordinal azul (magnitude, do maior para o menor) e o par
+     receita/despesa. Ambos validados para daltonismo e contraste na superfície
+     clara (ver README § Paleta dos gráficos). */
+  --chart-rank-1: #0d366b;
+  --chart-rank-2: #184f95;
+  --chart-rank-3: #256abf;
+  --chart-rank-4: #3987e5;
+  --chart-rank-5: #6da7ec;
+  --chart-other: #85817a;
+  --chart-income: #008300;
+  --chart-expense: #e34948;
+  --chart-grid: oklch(0.9 0.006 250);
+  --chart-axis: oklch(0.55 0.015 260);
+}
+
+.dark {
+  color-scheme: dark;
+  --background: oklch(0.17 0.015 260);
+  --foreground: oklch(0.96 0.005 250);
+
+  --card: oklch(0.21 0.018 260);
+  --card-foreground: oklch(0.96 0.005 250);
+
+  --popover: oklch(0.21 0.018 260);
+  --popover-foreground: oklch(0.96 0.005 250);
+
+  --primary: oklch(0.68 0.15 254);
+  --primary-foreground: oklch(0.18 0.02 260);
+
+  --secondary: oklch(0.27 0.02 260);
+  --secondary-foreground: oklch(0.96 0.005 250);
+
+  --muted: oklch(0.27 0.02 260);
+  --muted-foreground: oklch(0.7 0.015 260);
+
+  --accent: oklch(0.29 0.022 260);
+  --accent-foreground: oklch(0.96 0.005 250);
+
+  --destructive: oklch(0.65 0.19 25);
+  --destructive-foreground: oklch(0.98 0.005 250);
+
+  --success: oklch(0.7 0.14 158);
+  --success-foreground: oklch(0.18 0.02 260);
+
+  --border: oklch(1 0 0 / 12%);
+  --input: oklch(1 0 0 / 16%);
+  --ring: oklch(0.68 0.15 254);
+
+  --chart-rank-1: #cde2fb;
+  --chart-rank-2: #9ec5f4;
+  --chart-rank-3: #6da7ec;
+  --chart-rank-4: #3987e5;
+  --chart-rank-5: #256abf;
+  --chart-other: #8f8b83;
+  --chart-income: #008300;
+  --chart-expense: #e66767;
+  --chart-grid: oklch(1 0 0 / 10%);
+  --chart-axis: oklch(0.7 0.015 260);
+}
+
+/* Mesmos tokens quando o sistema está no escuro e a página não force o claro. */
+@media (prefers-color-scheme: dark) {
+  :root:not(.light) {
+    color-scheme: dark;
+    --background: oklch(0.17 0.015 260);
+    --foreground: oklch(0.96 0.005 250);
+
+    --card: oklch(0.21 0.018 260);
+    --card-foreground: oklch(0.96 0.005 250);
+
+    --popover: oklch(0.21 0.018 260);
+    --popover-foreground: oklch(0.96 0.005 250);
+
+    --primary: oklch(0.68 0.15 254);
+    --primary-foreground: oklch(0.18 0.02 260);
+
+    --secondary: oklch(0.27 0.02 260);
+    --secondary-foreground: oklch(0.96 0.005 250);
+
+    --muted: oklch(0.27 0.02 260);
+    --muted-foreground: oklch(0.7 0.015 260);
+
+    --accent: oklch(0.29 0.022 260);
+    --accent-foreground: oklch(0.96 0.005 250);
+
+    --destructive: oklch(0.65 0.19 25);
+    --destructive-foreground: oklch(0.98 0.005 250);
+
+    --success: oklch(0.7 0.14 158);
+    --success-foreground: oklch(0.18 0.02 260);
+
+    --border: oklch(1 0 0 / 12%);
+    --input: oklch(1 0 0 / 16%);
+    --ring: oklch(0.68 0.15 254);
+
+    --chart-rank-1: #cde2fb;
+    --chart-rank-2: #9ec5f4;
+    --chart-rank-3: #6da7ec;
+    --chart-rank-4: #3987e5;
+    --chart-rank-5: #256abf;
+    --chart-other: #8f8b83;
+    --chart-income: #008300;
+    --chart-expense: #e66767;
+    --chart-grid: oklch(1 0 0 / 10%);
+    --chart-axis: oklch(0.7 0.015 260);
+  }
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  --color-chart-rank-1: var(--chart-rank-1);
+  --color-chart-rank-2: var(--chart-rank-2);
+  --color-chart-rank-3: var(--chart-rank-3);
+  --color-chart-rank-4: var(--chart-rank-4);
+  --color-chart-rank-5: var(--chart-rank-5);
+  --color-chart-other: var(--chart-other);
+  --color-chart-income: var(--chart-income);
+  --color-chart-expense: var(--chart-expense);
+
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+@layer base {
+  * {
+    border-color: var(--border);
+  }
+  body {
+    background-color: var(--background);
+    color: var(--foreground);
+    font-family: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  ::selection {
+    background-color: color-mix(in oklab, var(--primary) 22%, transparent);
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+/* Recharts: remove o outline azul do foco ao interagir com o gráfico */
+.recharts-wrapper svg:focus,
+.recharts-surface:focus {
+  outline: none;
 }
