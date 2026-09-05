@@ -28,12 +28,8 @@ import { SubmitButton } from "@/components/auth/submit-button";
 import { categoriesForType } from "@/lib/categories";
 import { todayISO } from "@/lib/utils";
 import type { Transaction, TransactionType } from "@/lib/types";
-import {
-  createTransaction,
-  updateTransaction,
-  initialActionState,
-  type ActionState,
-} from "@/lib/actions/transactions";
+import { createTransaction, updateTransaction } from "@/lib/actions/transactions";
+import { initialActionState, type ActionState } from "@/lib/actions/state";
 
 function FieldError({ id, message }: { id: string; message?: string }) {
   if (!message) return null;

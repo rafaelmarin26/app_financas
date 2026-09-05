@@ -3,15 +3,8 @@
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
-import { validateTransaction, type FieldErrors } from "@/lib/validation";
-
-export type ActionState = {
-  status: "idle" | "success" | "error";
-  message?: string;
-  errors?: FieldErrors;
-};
-
-export const initialActionState: ActionState = { status: "idle" };
+import { validateTransaction } from "@/lib/validation";
+import type { ActionState } from "@/lib/actions/state";
 
 function revalidate() {
   revalidatePath("/dashboard");

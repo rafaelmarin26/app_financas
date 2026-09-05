@@ -5,7 +5,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { FormFeedback } from "@/components/auth/form-feedback";
 import { SubmitButton } from "@/components/auth/submit-button";
-import { signUp, initialAuthState } from "@/lib/actions/auth";
+import { signUp } from "@/lib/actions/auth";
+import { initialAuthState } from "@/lib/actions/state";
 
 export function SignupForm() {
   const [state, formAction] = useActionState(signUp, initialAuthState);

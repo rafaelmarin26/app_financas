@@ -26,11 +26,8 @@ import {
 import { TransactionDialog } from "@/components/transactions/transaction-dialog";
 import { categoryLabel } from "@/lib/categories";
 import { formatCurrency, formatDate } from "@/lib/utils";
-import {
-  deleteTransaction,
-  initialActionState,
-  type ActionState,
-} from "@/lib/actions/transactions";
+import { deleteTransaction } from "@/lib/actions/transactions";
+import { initialActionState, type ActionState } from "@/lib/actions/state";
 import type { Transaction } from "@/lib/types";
 
 function DeleteDialog({

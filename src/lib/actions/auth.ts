@@ -4,13 +4,7 @@ import { redirect } from "next/navigation";
 import { headers } from "next/headers";
 import { createClient } from "@/lib/supabase/server";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
-
-export type AuthState = {
-  status: "idle" | "error" | "check-email";
-  message?: string;
-};
-
-export const initialAuthState: AuthState = { status: "idle" };
+import type { AuthState } from "@/lib/actions/state";
 
 /** Mensagens do Supabase Auth traduzidas para o usuário final. */
 function translateAuthError(message: string) {

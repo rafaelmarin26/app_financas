@@ -5,7 +5,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { FormFeedback } from "@/components/auth/form-feedback";
 import { SubmitButton } from "@/components/auth/submit-button";
-import { signIn, initialAuthState } from "@/lib/actions/auth";
+import { signIn } from "@/lib/actions/auth";
+import { initialAuthState } from "@/lib/actions/state";
 
 export function LoginForm({ redirectTo }: { redirectTo?: string }) {
   const [state, formAction] = useActionState(signIn, initialAuthState);
