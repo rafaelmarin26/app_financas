@@ -16,8 +16,18 @@ cp .env.local.example .env.local   # preencha com os dados do seu projeto Supaba
 npm run dev                        # http://localhost:3000
 ```
 
+No Windows, dá para pular o terminal: **dê dois cliques em `iniciar-app.bat`**.
+Ele instala as dependências na primeira vez, sobe o servidor e abre o navegador.
+
 O app sobe mesmo sem credenciais: a landing page funciona e as telas de login e
 do app mostram um aviso explicando o que falta configurar.
+
+> **`localhost:3000` não é um site publicado.** É um servidor que roda no seu
+> computador e só existe enquanto a janela do `npm run dev` (ou do
+> `iniciar-app.bat`) estiver aberta. Ao fechar a janela, reiniciar ou desligar a
+> máquina, o endereço passa a dar `ERR_CONNECTION_REFUSED` — isso é o
+> comportamento normal, não uma falha. Basta subir de novo. Para um endereço que
+> fica no ar sozinho, publique na Vercel (seção 3).
 
 ### Scripts
 
