@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { Logo } from "@/components/layout/logo";
 import { HeaderNav, MobileTabBar } from "@/components/layout/nav-links";
 import { UserMenu } from "@/components/layout/user-menu";
+import { ThemeToggle } from "@/components/layout/theme-toggle";
 import { SupabaseSetupNotice } from "@/components/layout/supabase-setup-notice";
 import { createClient } from "@/lib/supabase/server";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
@@ -31,7 +32,8 @@ export default async function AppLayout({ children }: LayoutProps<"/">) {
           <div className="mx-auto md:mx-0">
             <HeaderNav />
           </div>
-          <div className="ml-auto">
+          <div className="ml-auto flex items-center gap-1">
+            <ThemeToggle />
             <UserMenu email={user.email ?? "Conta"} />
           </div>
         </div>

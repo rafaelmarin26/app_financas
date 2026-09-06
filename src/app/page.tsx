@@ -13,6 +13,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Logo } from "@/components/layout/logo";
 import { DashboardPreview } from "@/components/landing/dashboard-preview";
+import { ThemeToggle } from "@/components/layout/theme-toggle";
 import { createClient } from "@/lib/supabase/server";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
 
@@ -93,6 +94,7 @@ export default async function LandingPage() {
         <div className="mx-auto flex h-16 w-full max-w-6xl items-center justify-between px-4 sm:px-6">
           <Logo />
           <nav className="flex items-center gap-1 sm:gap-2">
+            <ThemeToggle />
             <Button asChild variant="ghost" size="sm" className="hidden sm:inline-flex">
               <Link href="#recursos">Recursos</Link>
             </Button>

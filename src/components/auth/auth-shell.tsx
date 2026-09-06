@@ -2,6 +2,7 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 import { ArrowLeft } from "lucide-react";
 import { Logo } from "@/components/layout/logo";
+import { ThemeToggle } from "@/components/layout/theme-toggle";
 
 export function AuthShell({
   title,
@@ -24,13 +25,16 @@ export function AuthShell({
         <div className="w-full max-w-sm">
           <div className="mb-8 flex items-center justify-between">
             <Logo />
-            <Link
-              href="/"
-              className="inline-flex items-center gap-1.5 rounded-md text-xs text-muted-foreground outline-none transition-colors hover:text-foreground focus-visible:ring-[3px] focus-visible:ring-ring/40"
-            >
-              <ArrowLeft className="size-3.5" />
-              Voltar ao site
-            </Link>
+            <div className="flex items-center gap-1">
+              <Link
+                href="/"
+                className="inline-flex items-center gap-1.5 rounded-md text-xs text-muted-foreground outline-none transition-colors hover:text-foreground focus-visible:ring-[3px] focus-visible:ring-ring/40"
+              >
+                <ArrowLeft className="size-3.5" />
+                Voltar ao site
+              </Link>
+              <ThemeToggle />
+            </div>
           </div>
 
           <div className="rounded-2xl border border-border bg-card p-6 shadow-sm sm:p-7">

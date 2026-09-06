@@ -145,7 +145,28 @@ seguintes têm datas próprias.
 Para mudar a frequência de uma série já criada, exclua "este e os próximos" e
 crie de novo — remarcar lançamentos existentes gera mais confusão do que ajuda.
 
-## 6. Paleta dos gráficos
+## 6. Aparência: claro, escuro e sistema
+
+O botão de aparência (canto superior direito, presente na landing, nas telas de
+login e no app) oferece três opções, guardadas no `localStorage`:
+
+| Escolha | Classe no `<html>` | Resultado |
+|---|---|---|
+| Claro | `light` | Sempre claro, mesmo com o sistema no escuro |
+| Escuro | `dark` | Sempre escuro |
+| Sistema | *nenhuma* | Segue o `prefers-color-scheme` do sistema |
+
+O CSS já é escrito nessa forma: `:root` traz os tokens claros, `.dark` os
+escuros e o bloco `@media (prefers-color-scheme: dark)` vale para
+`:root:not(.light)` — por isso "Sistema" é simplesmente a ausência de classe.
+
+Um script inline em `<head>` ([`theme-script.tsx`](src/components/layout/theme-script.tsx))
+aplica a classe salva **antes da primeira pintura**, então a página não pisca
+clara antes de virar escura. O botão lê a preferência com `useSyncExternalStore`,
+o que mantém abas abertas em paralelo em sincronia e evita ler o `localStorage`
+durante o render.
+
+## 7. Paleta dos gráficos
 
 As cores dos gráficos não foram escolhidas no olho — foram validadas para
 daltonismo e contraste nos dois temas (`--chart-*` em `src/app/globals.css`):
@@ -159,5 +180,8 @@ daltonismo e contraste nos dois temas (`--chart-*` em `src/app/globals.css`):
   `#e66767` (escuro) — o par passa em separação para deuteranopia/protanopia e em
   contraste sobre as duas superfícies, e a posição fixa de cada barra no grupo
   reforça a identidade além da cor.
+
+Os dois temas foram validados separadamente, e não por inversão automática do
+claro: cada um tem seus próprios degraus, medidos contra a sua superfície.
 
 Se for trocar a paleta, revalide antes de subir.
