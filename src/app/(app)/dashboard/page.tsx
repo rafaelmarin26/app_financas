@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/empty-state";
 import { PageHeader } from "@/components/layout/page-header";
+import { MigrationNotice } from "@/components/layout/migration-notice";
 import { SummaryCards } from "@/components/dashboard/summary-cards";
 import { CategoryDonut } from "@/components/dashboard/category-donut";
 import { MonthlyBars } from "@/components/dashboard/monthly-bars";
@@ -13,7 +14,12 @@ import { FilterBar } from "@/components/transactions/filter-bar";
 import { TransactionDialog } from "@/components/transactions/transaction-dialog";
 import { categoryLabel } from "@/lib/categories";
 import { parseFilters } from "@/lib/filters";
-import { listAvailableYears, listRecentMonths, listTransactions } from "@/lib/transactions";
+import {
+  isRecurrenceSchemaMissing,
+  listAvailableYears,
+  listRecentMonths,
+  listTransactions,
+} from "@/lib/transactions";
 import { byCategory, monthlySeries, summarize } from "@/lib/summary";
 import { formatCurrency, formatDate, monthLabel } from "@/lib/utils";
 
@@ -48,6 +54,8 @@ export default async function DashboardPage({ searchParams }: PageProps<"/dashbo
       />
 
       <FilterBar filters={filters} years={years} showSearch={false} showType={false} />
+
+      {isRecurrenceSchemaMissing() ? <MigrationNotice /> : null}
 
       <SummaryCards summary={summary} />
 

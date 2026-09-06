@@ -1,12 +1,17 @@
 import type { Metadata } from "next";
 
 import { PageHeader } from "@/components/layout/page-header";
+import { MigrationNotice } from "@/components/layout/migration-notice";
 import { FilterBar } from "@/components/transactions/filter-bar";
 import { TransactionList } from "@/components/transactions/transaction-list";
 import { TransactionDialog } from "@/components/transactions/transaction-dialog";
 import { ExportCsvButton } from "@/components/transactions/export-csv-button";
 import { hasActiveFilters, parseFilters } from "@/lib/filters";
-import { listAvailableYears, listTransactions } from "@/lib/transactions";
+import {
+  isRecurrenceSchemaMissing,
+  listAvailableYears,
+  listTransactions,
+} from "@/lib/transactions";
 import { summarize } from "@/lib/summary";
 import { formatCurrency } from "@/lib/utils";
 
@@ -36,6 +41,8 @@ export default async function TransactionsPage({ searchParams }: PageProps<"/tra
       />
 
       <FilterBar filters={filters} years={years} />
+
+      {isRecurrenceSchemaMissing() ? <MigrationNotice /> : null}
 
       {/* Resumo do recorte filtrado — o mesmo conjunto que sai no CSV. */}
       <div className="flex flex-wrap items-center gap-x-6 gap-y-2 rounded-xl border border-border bg-card px-4 py-3 text-sm shadow-sm">
