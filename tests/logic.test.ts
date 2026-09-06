@@ -6,6 +6,17 @@ import { transactionsToCSV } from "../src/lib/csv";
 import { parseFilters } from "../src/lib/filters";
 import { parseAmount, validateTransaction } from "../src/lib/validation";
 import { monthRange, formatDate, formatCurrency } from "../src/lib/utils";
+import {
+  addDays,
+  addMonths,
+  clampCount,
+  defaultCountFor,
+  frequencyLabel,
+  isFrequency,
+  seriesDates,
+  MAX_OCCURRENCES,
+  MIN_OCCURRENCES,
+} from "../src/lib/recurrence";
 import type { Transaction } from "../src/lib/types";
 
 const t = (
@@ -24,6 +35,10 @@ const t = (
   type,
   category,
   created_at: `${date}T12:00:00Z`,
+  series_id: null,
+  recurrence: null,
+  series_index: null,
+  series_total: null,
 });
 
 const now = new Date();
@@ -66,7 +81,8 @@ test("CSV", () => {
   assert.ok(csv.startsWith("\uFEFF"), "precisa do BOM para o Excel");
   const lines = csv.trim().split("\r\n");
   assert.equal(lines.length, 6);
-  assert.ok(lines[0].includes("Data;Descrição;Categoria;Tipo;Valor (R$)"));
+  assert.ok(lines[0].includes("Data;Descrição;Categoria;Tipo;Valor (R$);Recorrência"));
+  assert.ok(lines[1].endsWith(";"), "lançamento avulso deixa a recorrência vazia");
   assert.ok(lines[1].includes("05/") && lines[1].includes("5000,00"));
   assert.ok(lines[3].includes('"Mercado; feira"'), "ponto-e-vírgula deve ser escapado");
   assert.ok(lines[4].includes('"Uber ""centro"""'), "aspas devem ser dobradas");
@@ -133,4 +149,82 @@ test("Validação", () => {
     assert.ok(badResult.errors.type);
     assert.ok(badResult.errors.category);
   }
+});
+
+test("Recorrência — soma de meses com dia inexistente", () => {
+  // 31/01 encurta para o último dia de fevereiro, mas volta a 31 em março.
+  assert.equal(addMonths("2026-01-31", 1), "2026-02-28");
+  assert.equal(addMonths("2026-01-31", 2), "2026-03-31");
+  assert.equal(addMonths("2024-01-31", 1), "2024-02-29", "ano bissexto");
+  assert.equal(addMonths("2026-01-30", 1), "2026-02-28");
+  assert.equal(addMonths("2026-03-31", 1), "2026-04-30");
+
+  // Viradas de ano.
+  assert.equal(addMonths("2026-12-15", 1), "2027-01-15");
+  assert.equal(addMonths("2026-11-30", 12), "2027-11-30");
+  assert.equal(addMonths("2026-05-10", 0), "2026-05-10");
+});
+
+test("Recorrência — soma de dias", () => {
+  assert.equal(addDays("2026-09-05", 7), "2026-09-12");
+  assert.equal(addDays("2026-09-30", 1), "2026-10-01");
+  assert.equal(addDays("2026-12-31", 1), "2027-01-01");
+  assert.equal(addDays("2024-02-28", 1), "2024-02-29", "ano bissexto");
+});
+
+test("Recorrência — geração das séries", () => {
+  const mensal = seriesDates("2026-01-31", "mensal", 4);
+  assert.deepEqual(mensal, ["2026-01-31", "2026-02-28", "2026-03-31", "2026-04-30"]);
+
+  const semanal = seriesDates("2026-09-05", "semanal", 3);
+  assert.deepEqual(semanal, ["2026-09-05", "2026-09-12", "2026-09-19"]);
+
+  const quinzenal = seriesDates("2026-09-05", "quinzenal", 3);
+  assert.deepEqual(quinzenal, ["2026-09-05", "2026-09-19", "2026-10-03"]);
+
+  const trimestral = seriesDates("2026-01-15", "trimestral", 4);
+  assert.deepEqual(trimestral, ["2026-01-15", "2026-04-15", "2026-07-15", "2026-10-15"]);
+
+  const anual = seriesDates("2026-02-29" /* inválida, vira 28 na soma */, "anual", 2);
+  assert.equal(anual.length, 2);
+
+  // A primeira data é sempre a informada, e não há repetições.
+  const datas = seriesDates("2026-06-10", "mensal", 12);
+  assert.equal(datas[0], "2026-06-10");
+  assert.equal(datas.length, 12);
+  assert.equal(new Set(datas).size, 12, "nenhuma data repetida");
+});
+
+test("Recorrência — limites de quantidade", () => {
+  assert.equal(clampCount(1), MIN_OCCURRENCES);
+  assert.equal(clampCount(0), MIN_OCCURRENCES);
+  assert.equal(clampCount(-5), MIN_OCCURRENCES);
+  assert.equal(clampCount(999), MAX_OCCURRENCES);
+  assert.equal(clampCount(12), 12);
+  assert.equal(clampCount(NaN), MIN_OCCURRENCES);
+  assert.equal(clampCount(7.9), 7);
+  assert.equal(seriesDates("2026-01-01", "mensal", 999).length, MAX_OCCURRENCES);
+});
+
+test("Recorrência — validação de frequência", () => {
+  assert.equal(isFrequency("mensal"), true);
+  assert.equal(isFrequency("anual"), true);
+  assert.equal(isFrequency("diaria"), false);
+  assert.equal(isFrequency(""), false);
+  assert.equal(frequencyLabel("trimestral"), "Trimestral");
+  assert.equal(defaultCountFor("anual"), 3);
+});
+
+test("CSV — coluna de recorrência em lançamentos de série", () => {
+  const serie: Transaction = {
+    ...t("s1", "Netflix", 55.9, "2026-02-28", "despesa", "lazer"),
+    series_id: "abc",
+    recurrence: "mensal",
+    series_index: 2,
+    series_total: 12,
+  };
+  const linha = transactionsToCSV([serie]).trim().split("\r\n")[1];
+  assert.ok(linha.includes("Mensal 2/12"), linha);
+  assert.ok(linha.includes("28/02/2026"));
+  assert.ok(linha.includes("-55,90"));
 });

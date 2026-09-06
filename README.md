@@ -45,6 +45,10 @@ do app mostram um aviso explicando o que falta configurar.
 2. Em **SQL Editor**, cole e rode o conteúdo de [`supabase/schema.sql`](supabase/schema.sql).
    Isso cria a tabela `transactions`, os índices, o trigger de `updated_at` e as
    quatro políticas de **Row Level Security**.
+
+   > Se o banco já existia antes dos lançamentos recorrentes, rode também
+   > [`supabase/migrations/0001_recorrencia.sql`](supabase/migrations/0001_recorrencia.sql).
+   > As migrações são seguras para rodar mais de uma vez.
 3. Em **Project Settings → API**, copie a *Project URL* e a *anon public key*
    para o `.env.local`:
 
@@ -117,8 +121,31 @@ tests/logic.test.ts           `npm test`
   português abrir sem etapa de importação.
 - **Datas sem fuso.** `date` é um `DATE` no Postgres e é formatado por
   manipulação de string, para "05/09" nunca virar "04/09" por causa de UTC.
+- **Recorrência materializada.** Ao marcar "Repetir", os lançamentos da série são
+  gravados de uma vez, como linhas normais amarradas por um `series_id`. Assim
+  dashboard, filtros, busca e CSV continuam funcionando sem nenhum caso especial,
+  e um mês em que a conta veio diferente pode ser editado sozinho.
 
-## 5. Paleta dos gráficos
+## 5. Lançamentos recorrentes
+
+Frequências: **semanal, quinzenal, mensal, bimestral, trimestral, semestral e
+anual**. Ao criar, você escolhe a frequência e quantos lançamentos gerar (de 2 a
+60); o formulário mostra a primeira e a última data antes de salvar.
+
+A soma de meses preserva o dia e encurta para o último dia quando ele não existe,
+sempre partindo da data original — então uma conta todo dia 31 cai em `31/01`,
+`28/02`, `31/03`, sem a erosão de quem soma mês a mês. Está coberto por testes em
+`tests/logic.test.ts`.
+
+Ao editar ou excluir um lançamento de série, você escolhe entre **"Só este"** e
+**"Este e os próximos"**. Na edição em série, descrição, valor, tipo e categoria
+se propagam; a data alterada vale só para o lançamento aberto, porque os
+seguintes têm datas próprias.
+
+Para mudar a frequência de uma série já criada, exclua "este e os próximos" e
+crie de novo — remarcar lançamentos existentes gera mais confusão do que ajuda.
+
+## 6. Paleta dos gráficos
 
 As cores dos gráficos não foram escolhidas no olho — foram validadas para
 daltonismo e contraste nos dois temas (`--chart-*` em `src/app/globals.css`):

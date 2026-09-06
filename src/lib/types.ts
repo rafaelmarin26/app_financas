@@ -9,7 +9,15 @@ export type Transaction = {
   type: TransactionType;
   category: string;
   created_at: string;
+  /** Preenchidos juntos quando o lançamento faz parte de uma recorrência. */
+  series_id: string | null;
+  recurrence: string | null;
+  series_index: number | null;
+  series_total: number | null;
 };
+
+/** A que lançamentos uma edição ou exclusão se aplica. */
+export type SeriesScope = "one" | "future";
 
 export type TransactionInput = {
   description: string;

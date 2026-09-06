@@ -29,7 +29,31 @@ create table if not exists public.transactions (
                 )
               ),
   created_at  timestamptz not null default now(),
-  updated_at  timestamptz not null default now()
+  updated_at  timestamptz not null default now(),
+
+  -- Recorrência: os quatro campos são nulos em lançamentos avulsos e
+  -- preenchidos juntos nos que fazem parte de uma série.
+  series_id    uuid,
+  recurrence   text,
+  series_index integer,
+  series_total integer,
+
+  constraint transactions_series_complete check (
+    (series_id is null and recurrence is null
+      and series_index is null and series_total is null)
+    or
+    (series_id is not null and recurrence is not null
+      and series_index is not null and series_total is not null)
+  ),
+  constraint transactions_recurrence_valid check (
+    recurrence is null or recurrence in (
+      'semanal','quinzenal','mensal','bimestral','trimestral','semestral','anual'
+    )
+  ),
+  constraint transactions_series_bounds check (
+    series_total is null
+    or (series_total between 2 and 60 and series_index between 1 and series_total)
+  )
 );
 
 -- Índices usados pelos filtros do dashboard e da listagem.
@@ -38,6 +62,11 @@ create index if not exists transactions_user_date_idx
 
 create index if not exists transactions_user_category_idx
   on public.transactions (user_id, category);
+
+-- Usado ao editar ou excluir "esta e as próximas" de uma série.
+create index if not exists transactions_user_series_idx
+  on public.transactions (user_id, series_id, series_index)
+  where series_id is not null;
 
 -- updated_at automático --------------------------------------------------------
 create or replace function public.set_updated_at()

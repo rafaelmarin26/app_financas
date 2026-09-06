@@ -5,7 +5,8 @@ import { isSupabaseConfigured } from "@/lib/supabase/config";
 import { monthRange } from "@/lib/utils";
 import type { Transaction, TransactionFilters } from "@/lib/types";
 
-const COLUMNS = "id, user_id, description, amount, date, type, category, created_at";
+const COLUMNS =
+  "id, user_id, description, amount, date, type, category, created_at, series_id, recurrence, series_index, series_total";
 
 function normalize(row: Record<string, unknown>): Transaction {
   return {

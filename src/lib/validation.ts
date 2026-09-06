@@ -1,10 +1,23 @@
 import { CATEGORY_VALUES } from "./categories";
+import {
+  MAX_OCCURRENCES,
+  MIN_OCCURRENCES,
+  NO_RECURRENCE,
+  clampCount,
+  isFrequency,
+  type Frequency,
+} from "./recurrence";
 import type { TransactionInput } from "./types";
 
-export type FieldErrors = Partial<Record<keyof TransactionInput, string>>;
+export type FieldErrors = Partial<
+  Record<keyof TransactionInput | "recurrence" | "occurrences", string>
+>;
+
+/** Como o lançamento se repete. `null` = avulso. */
+export type RecurrenceInput = { frequency: Frequency; occurrences: number } | null;
 
 export type ValidationResult =
-  | { ok: true; data: TransactionInput }
+  | { ok: true; data: TransactionInput; recurrence: RecurrenceInput }
   | { ok: false; errors: FieldErrors };
 
 /** Aceita "1.234,56", "1234.56" e "1234,56". */
@@ -29,6 +42,8 @@ export function validateTransaction(form: FormData): ValidationResult {
   const date = String(form.get("date") ?? "").trim();
   const type = String(form.get("type") ?? "");
   const category = String(form.get("category") ?? "");
+  const rawRecurrence = String(form.get("recurrence") ?? NO_RECURRENCE);
+  const rawOccurrences = String(form.get("occurrences") ?? "");
 
   if (description.length < 2) {
     errors.description = "Descreva a transação com pelo menos 2 caracteres.";
@@ -57,6 +72,24 @@ export function validateTransaction(form: FormData): ValidationResult {
     errors.category = "Escolha uma categoria.";
   }
 
+  // Recorrência ---------------------------------------------------------------
+  let recurrence: RecurrenceInput = null;
+
+  if (rawRecurrence !== NO_RECURRENCE) {
+    if (!isFrequency(rawRecurrence)) {
+      errors.recurrence = "Escolha uma frequência válida.";
+    } else {
+      const occurrences = Number(rawOccurrences);
+      if (!Number.isFinite(occurrences) || occurrences < MIN_OCCURRENCES) {
+        errors.occurrences = `Gere pelo menos ${MIN_OCCURRENCES} lançamentos.`;
+      } else if (occurrences > MAX_OCCURRENCES) {
+        errors.occurrences = `Gere no máximo ${MAX_OCCURRENCES} lançamentos de uma vez.`;
+      } else {
+        recurrence = { frequency: rawRecurrence, occurrences: clampCount(occurrences) };
+      }
+    }
+  }
+
   if (Object.keys(errors).length > 0) return { ok: false, errors };
 
   return {
@@ -68,5 +101,6 @@ export function validateTransaction(form: FormData): ValidationResult {
       type: type as "receita" | "despesa",
       category,
     },
+    recurrence,
   };
 }

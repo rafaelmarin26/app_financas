@@ -1,8 +1,9 @@
 import { categoryLabel } from "./categories";
+import { frequencyLabel } from "./recurrence";
 import { formatDate } from "./utils";
 import type { Transaction } from "./types";
 
-const HEADERS = ["Data", "Descrição", "Categoria", "Tipo", "Valor (R$)"];
+const HEADERS = ["Data", "Descrição", "Categoria", "Tipo", "Valor (R$)", "Recorrência"];
 
 /**
  * Escapa um campo para CSV. O separador é `;` e os decimais usam vírgula,
@@ -20,6 +21,9 @@ export function transactionsToCSV(transactions: Transaction[]) {
       categoryLabel(t.category),
       t.type === "receita" ? "Receita" : "Despesa",
       (t.type === "receita" ? t.amount : -t.amount).toFixed(2).replace(".", ","),
+      t.series_id
+        ? `${frequencyLabel(t.recurrence ?? "")} ${t.series_index}/${t.series_total}`
+        : "",
     ].join(";"),
   );
 

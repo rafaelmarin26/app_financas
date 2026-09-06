@@ -1,7 +1,7 @@
 "use client";
 
 import { useActionState, useState } from "react";
-import { MoreHorizontal, Pencil, ReceiptText, Trash2 } from "lucide-react";
+import { MoreHorizontal, Pencil, ReceiptText, Repeat, Trash2 } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -26,9 +26,10 @@ import {
 import { TransactionDialog } from "@/components/transactions/transaction-dialog";
 import { categoryLabel } from "@/lib/categories";
 import { formatCurrency, formatDate } from "@/lib/utils";
+import { frequencyLabel } from "@/lib/recurrence";
 import { deleteTransaction } from "@/lib/actions/transactions";
 import { initialActionState, type ActionState } from "@/lib/actions/state";
-import type { Transaction } from "@/lib/types";
+import type { SeriesScope, Transaction } from "@/lib/types";
 
 function DeleteDialog({
   transaction,
@@ -39,6 +40,11 @@ function DeleteDialog({
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }) {
+  const [scope, setScope] = useState<SeriesScope>("one");
+  const isSeries = Boolean(transaction.series_id);
+  const remaining =
+    (transaction.series_total ?? 0) - (transaction.series_index ?? 0) + 1;
+
   const [state, formAction] = useActionState(
     async (prev: ActionState, form: FormData) => {
       const result = await deleteTransaction(prev, form);
@@ -52,13 +58,48 @@ function DeleteDialog({
     <AlertDialog open={open} onOpenChange={onOpenChange}>
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>Excluir esta transação?</AlertDialogTitle>
+          <AlertDialogTitle>
+            {isSeries ? "Excluir lançamento da série?" : "Excluir esta transação?"}
+          </AlertDialogTitle>
           <AlertDialogDescription>
             <span className="font-medium text-foreground">{transaction.description}</span> —{" "}
             {formatCurrency(transaction.amount)} em {formatDate(transaction.date)}. Esta ação
             não pode ser desfeita.
           </AlertDialogDescription>
         </AlertDialogHeader>
+
+        {isSeries ? (
+          <div className="space-y-2">
+            <div className="grid grid-cols-2 gap-2 rounded-lg bg-muted p-1">
+              {(
+                [
+                  ["one", "Só este"],
+                  ["future", "Este e os próximos"],
+                ] as const
+              ).map(([value, label]) => (
+                <button
+                  key={value}
+                  type="button"
+                  onClick={() => setScope(value)}
+                  aria-pressed={scope === value}
+                  className={
+                    "rounded-md px-3 py-1.5 text-sm font-medium transition-colors outline-none focus-visible:ring-[3px] focus-visible:ring-ring/40 " +
+                    (scope === value
+                      ? "bg-card shadow-xs"
+                      : "text-muted-foreground hover:text-foreground")
+                  }
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+            <p className="text-xs text-muted-foreground">
+              {scope === "future"
+                ? `Serão excluídos ${remaining} lançamentos, deste em diante.`
+                : `Os outros ${(transaction.series_total ?? 1) - 1} lançamentos da série continuam.`}
+            </p>
+          </div>
+        ) : null}
 
         {state.status === "error" && state.message ? (
           <p role="alert" className="text-sm text-destructive">
@@ -70,6 +111,13 @@ function DeleteDialog({
           <AlertDialogCancel>Cancelar</AlertDialogCancel>
           <form action={formAction}>
             <input type="hidden" name="id" value={transaction.id} />
+            <input type="hidden" name="scope" value={scope} />
+            {isSeries ? (
+              <>
+                <input type="hidden" name="seriesId" value={transaction.series_id!} />
+                <input type="hidden" name="seriesIndex" value={transaction.series_index!} />
+              </>
+            ) : null}
             <AlertDialogAction type="submit">Excluir</AlertDialogAction>
           </form>
         </AlertDialogFooter>
@@ -94,6 +142,17 @@ function TransactionRow({ transaction }: { transaction: Transaction }) {
           <span>{categoryLabel(transaction.category)}</span>
           <span aria-hidden>·</span>
           <time dateTime={transaction.date}>{formatDate(transaction.date)}</time>
+          {transaction.series_id ? (
+            <span
+              className="inline-flex items-center gap-1"
+              title={`Série ${frequencyLabel(transaction.recurrence ?? "")}`}
+            >
+              <span aria-hidden>·</span>
+              <Repeat className="size-3" />
+              {frequencyLabel(transaction.recurrence ?? "")} {transaction.series_index}/
+              {transaction.series_total}
+            </span>
+          ) : null}
         </div>
       </div>
 
