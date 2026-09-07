@@ -49,14 +49,17 @@ do app mostram um aviso explicando o que falta configurar.
    > Se o banco já existia antes dos lançamentos recorrentes, rode também
    > [`supabase/migrations/0001_recorrencia.sql`](supabase/migrations/0001_recorrencia.sql).
    > As migrações são seguras para rodar mais de uma vez.
-3. Em **Project Settings → API**, copie a *Project URL* e a *anon public key*
-   para o `.env.local`:
+3. Em **Project Settings → Data API**, copie a *Project URL* e a *Publishable
+   key* (nos projetos antigos, *anon public key*) para o `.env.local`:
 
    ```
-   NEXT_PUBLIC_SUPABASE_URL=https://SEU-PROJETO.supabase.co
-   NEXT_PUBLIC_SUPABASE_ANON_KEY=sua-anon-key
-   NEXT_PUBLIC_SITE_URL=http://localhost:3000
+   SUPABASE_URL=https://SEU-PROJETO.supabase.co
+   SUPABASE_ANON_KEY=sua-publishable-key
+   SITE_URL=http://localhost:3000
    ```
+
+   Nenhuma usa o prefixo `NEXT_PUBLIC_` — veja a seção 8. Nunca use aqui a
+   *service_role* / *secret key*: ela ignora o Row Level Security.
 
 4. Em **Authentication → URL Configuration**, adicione
    `http://localhost:3000/auth/callback` (e a URL da Vercel, depois do deploy)
@@ -75,11 +78,11 @@ explícita, como segunda camada.
 
 ## 3. Deploy na Vercel
 
-1. Suba o repositório para o GitHub.
-2. Importe o projeto na Vercel (o preset Next.js é detectado sozinho).
-3. Em **Settings → Environment Variables**, adicione as três variáveis do
-   `.env.local`, com `NEXT_PUBLIC_SITE_URL` apontando para o domínio de produção.
-4. Adicione `https://SEU-DOMINIO/auth/callback` nas *Redirect URLs* do Supabase.
+O passo a passo completo, com checklist de verificação, está em
+**[DEPLOY.md](DEPLOY.md)**. Em resumo: importar o repositório na Vercel,
+cadastrar `SUPABASE_URL`, `SUPABASE_ANON_KEY` e `SITE_URL` nas variáveis de
+ambiente, e liberar `https://SEU-DOMINIO/auth/callback` nas *Redirect URLs* do
+Supabase.
 
 ---
 
@@ -106,7 +109,9 @@ src/
     filters.ts  validation.ts Parsing da query string e validação de formulário
   proxy.ts                    Protege /dashboard e /transacoes, renova a sessão
 supabase/schema.sql           Schema + RLS
+supabase/migrations/          Alterações de schema aplicadas depois
 tests/logic.test.ts           `npm test`
+DEPLOY.md                     Passo a passo do deploy na Vercel
 ```
 
 ### Decisões de implementação
@@ -183,5 +188,26 @@ daltonismo e contraste nos dois temas (`--chart-*` em `src/app/globals.css`):
 
 Os dois temas foram validados separadamente, e não por inversão automática do
 claro: cada um tem seus próprios degraus, medidos contra a sua superfície.
+
+## 8. Segurança das credenciais
+
+As variáveis de ambiente **não** usam o prefixo `NEXT_PUBLIC_`. Todo acesso ao
+Supabase acontece no servidor — Server Components, Server Actions e o proxy —,
+então a chave nunca precisa chegar ao navegador. Sem o prefixo, o Next não a
+injeta no bundle do cliente.
+
+Para que isso não se perca com o tempo, `src/lib/supabase/config.ts` começa com
+`import "server-only"`: importar as credenciais a partir de um Client Component
+passa a quebrar o build, em vez de vazar em silêncio. Também não existe nenhum
+`createBrowserClient` no projeto.
+
+Mesmo assim, a última linha de defesa é o banco: as políticas de Row Level
+Security garantem que uma chave publishable, mesmo em mãos erradas, só enxergue
+as linhas do usuário autenticado.
+
+`next.config.ts` aplica HSTS, `X-Frame-Options: DENY`, `X-Content-Type-Options`,
+`Referrer-Policy` e `Permissions-Policy` em todas as rotas, e desliga o
+`X-Powered-By`. Não há Content-Security-Policy — o porquê está em
+[DEPLOY.md](DEPLOY.md).
 
 Se for trocar a paleta, revalide antes de subir.

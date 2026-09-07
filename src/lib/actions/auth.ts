@@ -30,7 +30,8 @@ function readCredentials(form: FormData) {
 }
 
 async function siteUrl() {
-  const configured = process.env.NEXT_PUBLIC_SITE_URL;
+  // Também sem NEXT_PUBLIC_: só o servidor monta os links de confirmação.
+  const configured = process.env.SITE_URL;
   if (configured) return configured.replace(/\/$/, "");
 
   const headerList = await headers();
